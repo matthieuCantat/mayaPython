@@ -202,7 +202,7 @@ class uiPuppetCtrlCurve():
 
 
 	def cmds_setProjectWorkSpace(self):
-		pipe_setProjectWorkSpace('cute')
+		pipe_setProjectWorkSpace('quadriped')
 
 
 	def cmds_doPlayblast(self):

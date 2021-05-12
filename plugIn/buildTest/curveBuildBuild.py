@@ -1,16 +1,24 @@
 
 pathPythonFiles = 'D:/mcantat_BDD/projects/code/maya/' 
-#__________________________ NODE INFO
-nodeType       = 'customCurve'  
+#__________________________ NODE DISPLAY
 useNodeCpp    = 1
-highPoly      = 1
-releaseMode   = 0
+highPoly      = 0
+releaseMode   = 1 # tbb doesnt have a debug mode
 pathNodePython = 'NONE'
+#__________________________ NODE INFO
+nodeType       = 'curveBuild'  
 releaseFolder = ['Debug','Release']
-pathNodeCpp    = 'D:\mcantat_BDD\projects\code\maya\c++\mayaNode\customCurve\Build\{}\customCurve.mll'.format( releaseFolder[releaseMode] )
+pathNodeCpp    = 'D:/mcantat_BDD/projects/code/maya/c++/mayaNode/curveBuild/Build/{}/curveBuild.mll'.format( releaseFolder[releaseMode] )
+pathNode   = [ pathNodePython , pathNodeCpp ][useNodeCpp]
 #__________________________ BUILD TEST INFO
 lodSuffixs = [ 'Low' , 'High' ]
-pathBuildTest = 'D:/mcantat_BDD/projects/nodeTest/customCurveBuildTest.ma'
+pathBuildTest = 'D:/mcantat_BDD/projects/nodeTest/curveBuildBuildTest.ma'
+
+#__________________________ NODE DRAW INFO
+nodeTypeDraw     = 'glDraw'  
+pathNodeCppDraw  = 'D:/mcantat_BDD/projects/code/maya/c++/mayaNode/glDraw/Build/Release/glDraw.mll'.format( releaseFolder[releaseMode] )
+
+
 
 print( 'BUILD TEST __________________________ SOURCE')
 import sys
@@ -21,13 +29,13 @@ from python.plugIn.utilsMayaNodesBuild import *
 
 
 if( mc.objExists("locator1") ):
-    mc.file( new = True, f= True  )
-    clean( pathNode , nodeType)
-    mc.error("****CLEAN FOR RECOMPILING NODE*****")
-    
+	clean( [pathNode , pathNodeCppDraw  ] , [nodeType , nodeTypeDraw ] )
+	mc.error("****CLEAN FOR RECOMPILING NODE*****")
+
+
+
+
 print( 'BUILD TEST __________________________ PREPARE SCENE')
-pathNode   = [ pathNodePython , pathNodeCpp ][useNodeCpp]
-clean( pathNode , nodeType)
 mc.file( pathBuildTest , i = True )
 
 drivers    = mc.ls( "locator*" , type = "transform" )
@@ -60,3 +68,28 @@ mc.select(newNode)
 
 
 mc.setAttr( "curveShape1.lineWidth" , 5)
+
+
+
+
+#LOAD DRAW
+
+print( 'BUILD TEST __________________________ PREPARE SCENE')
+camera = "persp"
+print( 'BUILD TEST __________________________ LOAD NODE')
+mc.loadPlugin( pathNodeCppDraw  )
+print( 'BUILD TEST __________________________ CREATE NODE')
+drawNode = mc.createNode( nodeTypeDraw ) 
+
+print( 'BUILD TEST __________________________ CONNECT IN')
+mc.connectAttr( ( camera + '.worldMatrix[0]' )  , '{}.camMatrix'.format( drawNode )  )
+mc.connectAttr( ( newNode + '.outDraw' )  , '{}.inDraw'.format( drawNode )  )
+
+print( 'BUILD TEST __________________________ CONNECT OUT')
+
+print( 'BUILD TEST __________________________ SET ATTR')
+
+
+print( 'BUILD TEST __________________________ DONE')
+mc.select(newNode)
+

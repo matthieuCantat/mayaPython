@@ -1,16 +1,41 @@
 import maya.cmds as mc
-
-
+import maya.mel as mel
 
 
 def clean( path , nodeType):   
     print('=== NEW SCENE ===')
     mc.file( new = True , f = True )
+    mc.flushUndo()
     try:
-        mc.unloadPlugin( nodeType , f = True ) 
+        mc.unloadPlugin( path , f = True ) 
     except:
         pass
+
+    try:
+        mc.PluginManager();
+        mel.eval('unloadPluginWithCheck( "{}", true )'.format(path))
+    except:
+        pass
+
     mc.file( new = True , f = True )    
+
+def clean( paths , names ):   
+    print('=== NEW SCENE ===')
+    mc.file( new = True , f = True )
+    mc.flushUndo()
+    mc.PluginManager();
+
+    for i in range(0,len(paths) ):
+        print('\ttry: {}'.format(paths) )
+        try:
+            mc.unloadPlugin( names[i] , f = True )
+        except:
+            try:  
+                mel.eval('unloadPluginWithCheck( "{}", true )'.format(path))
+            except:
+                print("\t unloadPluginWithCheck doesntWork")
+        mc.refresh() 
+
 
     
 def createLocTest( nbr , separationLength = 2 ):
@@ -146,3 +171,12 @@ def createLocOnIndex( mesh , coordsString ):
         mc.setAttr( loc + '.translateY' , coords[1] )
         mc.setAttr( loc + '.translateZ' , coords[2] )
 
+
+
+
+def connectMatrix( attr , obj ):
+    node = mc.createNode("decomposeMatrix")
+    mc.connectAttr( attr , node + '.inputMatrix' )
+    mc.connectAttr( node + '.outputTranslate' , obj + '.translate' )
+    mc.connectAttr( node + '.outputRotate'    , obj + '.rotate' )
+    mc.connectAttr( node + '.outputScale'     , obj + '.scale' )

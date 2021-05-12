@@ -460,3 +460,19 @@ def incrVarB( var ):
 varTest = [0]
 incrVarB(varTest)
 print(varTest)
+
+
+
+#PARTIAL
+from functools import partial
+
+def printCustom( author = "matthieu" , message = "salut salut" ):
+    print("{} {}".format(author,message))
+
+
+printCustomBruno = partial( printCustom , author = "Bruno"   )
+
+
+printCustomBruno(message = "Heeeey")
+
+

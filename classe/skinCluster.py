@@ -437,6 +437,8 @@ def rebindWithIncrMesh( skinnedMeshBaseName ):
 def API_skinClusterClass( skinClusterName  ):
 	allSkins = om.MItDependencyNodes( om.MFn.kSkinClusterFilter )
 
+	skin = None
+
 	i = 1
 	while not allSkins.isDone():
 	       
@@ -558,3 +560,128 @@ def setSkinWeights( skinCluster, dataSkin ):
 
 
 		
+
+def mirrorSkin( middleEdge , debug = False ):
+
+	mesh            = middleEdge.split('.e[')[0]
+	middleEdgeIndex = int( middleEdge.split('.e[')[1][:-1] )
+
+	#CHECK IF SKINCLUSTER
+
+	shapes     = mc.listRelatives( mesh , c = True , s =  True , f = True)
+	skinInput = None
+	for shape in shapes:
+		skinInput  = mc.listConnections( shape , s = True , d = False , t = "skinCluster" )
+		if not( skinInput == None ): break
+
+	if( skinInput == None ):
+		mc.error('mirrorSkin - no skinCluster')
+
+	# GET WEIGHTS
+	skinWeights = getSkinWeights( skinInput[0] )
+
+	#CHECK IF SKINCLUSTER
+	pathNodeCpp    = 'D:/mcantat_BDD/projects/code/maya/c++/mayaNode/meshMirrorIndexes/Build/Release/meshMirrorIndexes.mll'
+	nodeType       = 'meshMirrorIndexes' 
+
+
+	mc.loadPlugin( pathNodeCpp  )
+
+	mc.select(mesh)
+	newNode = mc.deformer( type = nodeType)[0]
+
+	mc.setAttr( newNode + '.middleEdgeIndex' , middleEdgeIndex)
+	mc.setAttr( newNode + '.recompute' , 0)
+	mc.refresh()
+
+	#TEST INIT
+	array      = [ int(i) for i in mc.getAttr( newNode + '.mirroredIndexes' )[0] ]
+	array_size = [ int(i) for i in mc.getAttr( newNode + '.mirroredIndexesSizes' )[0] ]
+	
+	
+	# GET SIDES
+	sides = [[],[]]
+	last_size = 0
+	for i in range(0,2):
+	    iStart = last_size
+	    iEnd   = last_size + array_size[i]
+	    
+	    for j in range(iStart,iEnd):
+	        sides[i].append( array[j] )
+	        
+	    last_size = iEnd
+
+
+
+	if( debug ):
+		nodeTypeDraw     = 'glDraw'  
+		pathNodeCppDraw  = 'D:/mcantat_BDD/projects/code/maya/c++/mayaNode/glDraw/Build/Release/glDraw.mll'
+
+		camera = "persp"
+		mc.loadPlugin( pathNodeCppDraw  )
+		drawNode = mc.createNode( nodeTypeDraw ) 
+
+		mc.connectAttr( ( camera + '.worldMatrix[0]' )  , '{}.camMatrix'.format( drawNode )  )
+		mc.connectAttr( ( newNode + '.outDraw' )  , '{}.inDraw'.format( drawNode )  )
+	else:
+		mc.delete( newNode )
+
+	
+	######################
+	
+	indexeToJoints = []
+	indexeToWeights = []
+	for i in range(0,mc.polyEvaluate( mesh , v = True )):
+		indexeToJoints.append([])
+		indexeToWeights.append([])
+
+	shape = skinWeights.keys()[0]
+
+	
+
+	for joint in skinWeights[shape].keys():
+		for i in range( 0 , len( skinWeights[shape][joint][0] ) ):
+			index = skinWeights[shape][joint][0][i]
+			
+			indexeToJoints[index].append( joint )
+
+			indexeToWeights[index].append( skinWeights[shape][joint][1][i] )
+
+	######################
+	
+	
+	sideA = sides[0]
+	sideB = sides[1]
+
+	for i in range(0,len(sideA)):
+
+		indexeToJoints[ sideB[i]] = []
+		indexeToWeights[sideB[i]] = indexeToWeights[sideA[i]][:]
+		for j in range( 0, len(indexeToJoints[sideA[i]]) ):
+		
+			if(   'l_' == indexeToJoints[sideA[i]][j][0:2] ):indexeToJoints[sideB[i]].append( 'r_' + indexeToJoints[sideA[i]][j][2:] )
+			elif( 'r_' == indexeToJoints[sideA[i]][j][0:2] ):indexeToJoints[sideB[i]].append( 'l_' + indexeToJoints[sideA[i]][j][2:] )
+			else:                                            indexeToJoints[sideB[i]].append(        indexeToJoints[sideA[i]][j]       )		
+
+
+
+	
+	######################
+
+	skinWeights_new = { shape : { jnt : [[],[]] for jnt in list(set([ jnt for jnts in indexeToJoints for jnt in jnts ])) } }
+
+	for joint in skinWeights_new[shape].keys():
+
+		for i in range( 0 , len(indexeToJoints)):
+			for j in range( 0 , len(indexeToJoints[i])):
+				if( joint == indexeToJoints[i][j] ):
+					skinWeights_new[shape][joint][0].append( i )
+					skinWeights_new[shape][joint][1].append( indexeToWeights[i][j] )
+
+	####################
+	print( indexeToJoints)
+	#print( skinWeights)
+	#print( skinWeights_new)
+
+	
+	setSkinWeights(skinInput[0],skinWeights_new)

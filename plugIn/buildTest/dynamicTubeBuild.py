@@ -1,58 +1,72 @@
 
-#******************SOURCE******************
-pythonFilePath = 'D:/mcantat_BDD/projects/code/maya/' 
+
+
+pathPythonFiles = 'D:/mcantat_BDD/projects/code/maya/' 
+#__________________________ NODE INFO
+nodeType       = 'dynamicTube'  
+useNodeCpp    = 1
+highPoly      = 1
+releaseMode   = 0
+pathNodePython = 'NONE'
+releaseFolder = ['Debug','Release']
+pathNodeCpp    = 'D:\mcantat_BDD\projects\code\maya\c++\mayaNode\\dynamicTube\Build\{}\\dynamicTube.mll'.format( releaseFolder[releaseMode] )
+#__________________________ BUILD TEST INFO
+lodSuffixs = [ 'Low' , 'High' ]
+pathBuildTest = 'D:/mcantat_BDD/projects/nodeTest/dynamicTubeBuildTest.ma'
+
+print( 'BUILD TEST __________________________ SOURCE')
 import sys
-sys.path.append( pythonFilePath )
-#******************SOURCE******************
-
-
-import maya.cmds as mc
+sys.path.append( pathPythonFiles )
 import python
+import maya.cmds as mc
 from python.plugIn.utilsMayaNodesBuild import *
 
 
-cPlusPlusVersion = 1
+if( mc.objExists("pCube1") ):
+    mc.file( new = True, f= True  )
+    clean( pathNode , nodeType)
+    clean( pathNodeB , nodeTypeB)
+    mc.error("****CLEAN FOR RECOMPILING NODE*****")
+    
+print( 'BUILD TEST __________________________ PREPARE SCENE')
+pathNode   = [ pathNodePython , pathNodeCpp ][useNodeCpp]
+clean( pathNode , nodeType)
+#mc.file( pathBuildTest , i = True )
+
+print( 'BUILD TEST __________________________ LOAD NODE')
+mc.loadPlugin( pathNode  )
+
+print( 'BUILD TEST __________________________ CREATE NODE')
+newNode = mc.createNode( nodeType ) 
+  
+print( 'BUILD TEST __________________________ PREPARE SCENE')
 nbrTest = 10
-
-
-
-path = 'D:\mcantat_BDD\projects\code\maya\python\plugIn\dynamicTube.py'
-nodeType = 'dynamicTube'  
-fileName = 'dynamicTube'
-
-if( cPlusPlusVersion == 1 ):
-    path = 'D:\mcantat_BDD\Travail\code\maya\\node\c++\mayaNode\dynamicTube\Build\Debug\dynamicTube.mll'
-    nodeType = 'dynamicTube'  
-    fileName = 'dynamicTube'
-
-#NEW SCENE
-clean( path , nodeType)    
-mc.loadPlugin( path  )
-newNode = mc.createNode( nodeType )  
-#BUILD LOCATORS
-print('=== BUILD TEST ===')
 inputMatrixObjsA = createCubeTest( [ 0 , 0 , 0 ] , returnTransform = True  )
 inputMatrixObjsB = createCubeTest( [ nbrTest , 0 , 0 ] , returnTransform = True  )
-planeCollision = createPlaneTest( [ 5 , -1 , 5 ] , returnTransform = True )
-sphereCollision = createSphereTest( [ 7 , 0 , 7 ] , returnTransform = True )
+planeCollision   = createPlaneTest( [ 5 , -1 , 5 ] , returnTransform = True )
+sphereCollision  = createSphereTest( [ 7 , 0 , 7 ] , returnTransform = True )
 
 outputMatrixObjs = []
 for i in range( 0 , nbrTest ):
     outputMatrixObjs.append( createSphereTest( [ 0 , 0 , 0 ] , returnTransform = True ) )
 
-#INPUT  
-print('=== INPUT CONNECTIONS ===')    
+
+print( 'BUILD TEST __________________________ CONNECT IN')  
+
 mc.connectAttr( ( inputMatrixObjsA + '.translate' ) , ( newNode + '.inputPointA' ) )
 mc.connectAttr( ( inputMatrixObjsB + '.translate' ) , ( newNode + '.inputPointB' ) )
 mc.connectAttr( ( planeCollision + '.translate' )   , ( newNode + '.pointPlaneCollision' ) )
 mc.connectAttr( ( sphereCollision + '.translate' ) , ( newNode + '.pointSphereCollision' ) )
 mc.connectAttr( ( sphereCollision + '.scaleX' ) , ( newNode + '.raySphereCollision' ) )
-#OUTPUT
-print('=== OUTPUT CONNECTIONS ===')
+
+
+print( 'BUILD TEST __________________________ CONNECT OUT')
+
 mc.setAttr( 'dynamicTube1.nbrSamples', nbrTest)
 for i in range( 0 , len(outputMatrixObjs) ):
     mc.connectAttr( ( newNode + '.outPoints['+str(i)+']' ) , ( outputMatrixObjs[i] + '.translate' ) )  
-print('=== DONE ===')    
+
+print( 'BUILD TEST __________________________ SET ATTR') 
 
 mc.setAttr( newNode + '.nbrLinkEval', 5)
 mc.setAttr( newNode + '.momentumPastSample', 7)
@@ -67,3 +81,7 @@ mc.setAttr( newNode + '.edgeLengthPower', 0)
 mc.setAttr( newNode + '.addPower', 0)
 mc.setAttr( newNode + '.smoothPower', 0)
 mc.setAttr( newNode + '.relaxPower', 1)
+
+print( 'BUILD TEST __________________________ DONE')
+mc.select(newNode)
+

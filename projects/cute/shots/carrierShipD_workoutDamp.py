@@ -71,6 +71,25 @@ ns   = 'skydome_???'
 for i in range(0,nbr):rwi.mayaScene_load( path , ref = ns , incr = False )
 
 
+
+
+#RENDER_________ LOAD SKELETON ANIM
+import python.classe.animCurve as ac
+reload(python.classe.animCurve)
+path = 'D:/mcantat_BDD/projects/cute/shots/carrierShipD_workoutDamp/maya/scenes/carrierShipD_workoutDamp_render.xml'
+AnimCurve = ac.animCurve()
+AnimCurve.createFromFile(path)
+AnimCurve.toObjs()
+
+
+#RENDER_________ SAVE
+import maya.cmds as mc
+import python
+from python.classe.readWriteInfo import *
+reload(python.classe.readWriteInfo)
+rwi = readWriteInfo()
+
+#rwi.mayaScene_load( 'D:/mcantat_BDD/projects/cute/shots/carrierShipD_workoutDamp/maya/scenes/carrierShipD_workoutDamp_render.ma' , open = True )
 rwi.mayaScene_save( 'D:/mcantat_BDD/projects/cute/shots/carrierShipD_workoutDamp/maya/scenes/carrierShipD_workoutDamp_render.ma' )
 
 
@@ -118,6 +137,6 @@ reload(python.classe.animCurve)
 path = 'D:/mcantat_BDD/projects/cute/shots/carrierShipD_workoutDamp/maya/scenes/carrierShipD_workoutDamp_render.xml'
 AnimCurve = ac.animCurve()
 AnimCurve.createFromFile(path)
-AnimCurve.toObjs(replace = True)
+AnimCurve.toObjs()
 
 

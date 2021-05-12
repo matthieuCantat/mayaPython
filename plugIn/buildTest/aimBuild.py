@@ -1,16 +1,25 @@
 
 pathPythonFiles = 'D:/mcantat_BDD/projects/code/maya/' 
-#__________________________ NODE INFO
-nodeType       = 'aim'  
+#__________________________ NODE DISPLAY
 useNodeCpp    = 1
 highPoly      = 1
 releaseMode   = 0
 pathNodePython = 'NONE'
+#__________________________ NODE INFO
+nodeType       = 'aim'  
 releaseFolder = ['Debug','Release']
-pathNodeCpp    = 'D:\mcantat_BDD\projects\code\maya\c++\mayaNode\\aim\Build\{}\\aim.mll'.format( releaseFolder[releaseMode] )
+pathNodeCpp    = 'D:/mcantat_BDD/projects/code/maya/c++/mayaNode/aim/Build/{}/aim.mll'.format( releaseFolder[releaseMode] )
+pathNode   = [ pathNodePython , pathNodeCpp ][useNodeCpp]
 #__________________________ BUILD TEST INFO
 lodSuffixs = [ 'Low' , 'High' ]
 pathBuildTest = 'D:/mcantat_BDD/projects/nodeTest/aimBuildTest.ma'
+
+
+#__________________________ NODE DRAW INFO
+nodeTypeDraw     = 'glDraw'  
+pathNodeCppDraw  = 'D:/mcantat_BDD/projects/code/maya/c++/mayaNode/glDraw/Build/{}/glDraw.mll'.format( releaseFolder[releaseMode] )
+
+
 
 print( 'BUILD TEST __________________________ SOURCE')
 import sys
@@ -21,14 +30,10 @@ from python.plugIn.utilsMayaNodesBuild import *
 
 
 if( mc.objExists("target") ):
-    mc.file( new = True, f= True  )
-    clean( pathNode , nodeType)
-    clean( pathNodeB , nodeTypeB)
-    mc.error("****CLEAN FOR RECOMPILING NODE*****")
+	clean( [pathNode , pathNodeCppDraw  ] , [nodeType , nodeTypeDraw ] )
+	mc.error("****CLEAN FOR RECOMPILING NODE*****")
     
 print( 'BUILD TEST __________________________ PREPARE SCENE')
-pathNode   = [ pathNodePython , pathNodeCpp ][useNodeCpp]
-clean( pathNode , nodeType)
 mc.file( pathBuildTest , i = True )
 
 print( 'BUILD TEST __________________________ LOAD NODE')
@@ -48,7 +53,7 @@ mc.connectAttr( slave + '.translate'            , newNode+'.origTranslate'   , f
 mc.connectAttr( slave + '.rotatePivotTranslate' , newNode+'.origRotatePivotTranslate'   , f = True )
 mc.connectAttr( slave + '.rotatePivot'          , newNode+'.origRotatePivot'   , f = True )
 mc.connectAttr( slave + '.jointOrient'          , newNode+'.origJointOrient'   , f = True )
-mc.setAttr( newNode+'.origRotate'          , mc.getAttr(slave + '.rotate' )[0][0], mc.getAttr(slave + '.rotate' )[0][1], mc.getAttr(slave + '.rotate' )[0][2] , type = "double3"   )
+mc.setAttr( newNode+'.origRotateOffset'          , mc.getAttr(slave + '.rotate' )[0][0], mc.getAttr(slave + '.rotate' )[0][1], mc.getAttr(slave + '.rotate' )[0][2] , type = "double3"   )
 mc.connectAttr( slave + '.rotateAxis'           , newNode+'.origRotateAxis'   , f = True )
 mc.connectAttr( slave + '.rotateOrder'          , newNode+'.origRotateOrder'   , f = True )
 
@@ -67,17 +72,17 @@ mc.select(newNode)
 
 
 
-
+'''
 
 pathPythonFiles = 'D:/mcantat_BDD/projects/code/maya/' 
 #__________________________ NODE INFO
-nodeTypeB       = 'glDraw'  
+nodeTypeB       = 'aimGL'  
 useNodeCpp    = 1
 highPoly      = 1
 releaseMode   = 0
 pathNodePython = 'NONE'
 releaseFolder = ['Debug','Release']
-pathNodeCpp    = 'D:\mcantat_BDD\projects\code\maya\c++\mayaNode\glDraw\Build\{}\glDraw.mll'.format( releaseFolder[releaseMode] )
+pathNodeCpp    = 'D:\mcantat_BDD\projects\code\maya\c++\mayaNode\\aimGL\Build\{}\\aimGL.mll'.format( releaseFolder[releaseMode] )
 #__________________________ BUILD TEST INFO
 lodSuffixs = [ 'Low' , 'High' ]
 pathBuildTest = 'D:/mcantat_BDD/projects/nodeTest/glDrawBuildTest.ma'
@@ -106,6 +111,32 @@ print( 'BUILD TEST __________________________ SET ATTR')
 
 print( 'BUILD TEST __________________________ DONE')
 mc.select(drawNode)
+
+
+
+'''
+
+#LOAD DRAW
+
+print( 'BUILD TEST __________________________ PREPARE SCENE')
+camera = "persp"
+print( 'BUILD TEST __________________________ LOAD NODE')
+mc.loadPlugin( pathNodeCppDraw  )
+print( 'BUILD TEST __________________________ CREATE NODE')
+drawNode = mc.createNode( nodeTypeDraw ) 
+
+print( 'BUILD TEST __________________________ CONNECT IN')
+mc.connectAttr( ( camera + '.worldMatrix[0]' )  , '{}.camMatrix'.format( drawNode )  )
+mc.connectAttr( ( newNode + '.outDraw' )  , '{}.inDraw'.format( drawNode )  )
+
+print( 'BUILD TEST __________________________ CONNECT OUT')
+
+print( 'BUILD TEST __________________________ SET ATTR')
+
+
+print( 'BUILD TEST __________________________ DONE')
+mc.select(newNode)
+
 
 
 

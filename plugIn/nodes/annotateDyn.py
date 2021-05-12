@@ -5,16 +5,19 @@ path = 'D:\mcantat_BDD\projects\code\maya\python\plugIn\annotateDyn.py'
 mc.file( new = True , f = True )
 mc.loadPlugin( path , qt = True )   
 '''
+import sys
+sys.path.append('D:/mcantat_BDD/projects/code/maya')
 
 import maya.OpenMaya as om
 import maya.OpenMayaMPx as ommpx
 import maya.cmds as mc
 import maya.OpenMayaRender as omr
 import time
-import utilsMayaNodes as utils
 import math
 import copy
 
+
+import python.plugIn.utilsMayaNodes as utils
 import python.utils.utilsMayaApi as utilsMayaApi
 import python.classe.trsBackUp as trsClass 
 
